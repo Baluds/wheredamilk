@@ -1,0 +1,31 @@
+# wheredamilk — Python Dependencies
+#
+# Install all at once:
+#   pip install -r requirements.txt
+#
+# Note: PaddleOCR requires paddlepaddle.
+# On Apple Silicon, use the standard CPU build:
+#   pip install paddlepaddle
+# On x86 / CUDA machines:
+#   pip install paddlepaddle-gpu
+
+# ── Core vision ───────────────────────────────────────────────────────────────
+ultralytics>=8.0.0          # YOLOv8
+opencv-python>=4.8.0        # webcam capture + drawing
+paddleocr>=2.7.0            # OCR
+paddlepaddle>=2.5.0         # PaddlePaddle CPU (swap for paddlepaddle-gpu if needed)
+
+# ── MiDaS Depth Estimation ────────────────────────────────────────────────────
+transformers>=4.35.0        # HuggingFace pipeline (hosts MiDaS)
+timm>=0.9.0                 # MiDaS backbone dependency
+torch>=2.0.0                # PyTorch CPU (MiDaS runs fine on CPU)
+Pillow>=10.0.0              # PIL Image input for HuggingFace pipeline
+
+# ── Audio / speech ────────────────────────────────────────────────────────────
+elevenlabs>=1.0.0           # primary TTS (set ELEVEN_API_KEY env var)
+pyttsx3>=2.90               # offline TTS fallback (no key needed)
+SpeechRecognition>=3.10.0   # optional mic input
+pyaudio>=0.2.13             # microphone backend for SpeechRecognition
+
+# ── API (optional) ────────────────────────────────────────────────────────────
+flask>=3.0.0
