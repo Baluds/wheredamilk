@@ -1,10 +1,8 @@
 """
-utils/tts.py — Throttled TTS using ElevenLabs (primary) or pyttsx3 (fallback).
+utils/tts.py — Throttled TTS using ElevenLabs.
 
 Set your API key via environment variable:
     export ELEVEN_API_KEY="sk-..."
-
-If the key is not set, the engine falls back to pyttsx3 (offline, robotic).
 
 Speaks only when:
   1. The text has changed since last utterance, OR
@@ -33,19 +31,8 @@ except ImportError:
 ELEVEN_VOICE_ID = os.environ.get("ELEVEN_VOICE_ID", "Rachel")
 ELEVEN_MODEL    = "eleven_turbo_v2"   # lowest-latency model (~300 ms)
 
-# ── pyttsx3 fallback ──────────────────────────────────────────────────────────
-try:
-    import pyttsx3 as _pyttsx3
-    _PYTTSX3_AVAILABLE = True
-except ImportError:
-    _PYTTSX3_AVAILABLE = False
-
-
 class TTSEngine:
-    def __init__(self, rate: int = 160, volume: float = 1.0):
-        self._rate   = rate
-        self._volume = volume
-
+    def __init__(self):
         self._last_text: str  = ""
         self._last_time: float = 0.0
         self._lock = threading.Lock()
@@ -53,10 +40,8 @@ class TTSEngine:
         if _ELEVEN_AVAILABLE:
             self._client = ElevenLabs(api_key=_ELEVEN_KEY)
             print(f"[tts] ElevenLabs ready  (voice={ELEVEN_VOICE_ID}, model={ELEVEN_MODEL})")
-        elif _PYTTSX3_AVAILABLE:
-            print("[tts] ElevenLabs key not set — falling back to pyttsx3.")
         else:
-            print("[tts] WARNING: neither ElevenLabs nor pyttsx3 available. No audio.")
+            print("[tts] WARNING: ElevenLabs not available (key missing or package not installed). No audio.")
 
     # ── Public API ────────────────────────────────────────────────────────────
 
@@ -84,8 +69,6 @@ class TTSEngine:
     def _say(self, text: str) -> None:
         if _ELEVEN_AVAILABLE:
             self._say_eleven(text)
-        elif _PYTTSX3_AVAILABLE:
-            self._say_pyttsx3(text)
         else:
             print(f"[tts] (no audio) {text}")
 
@@ -98,16 +81,4 @@ class TTSEngine:
             )
             play(audio)
         except Exception as exc:
-            print(f"[tts] ElevenLabs error: {exc} — falling back to pyttsx3")
-            if _PYTTSX3_AVAILABLE:
-                self._say_pyttsx3(text)
-
-    def _say_pyttsx3(self, text: str) -> None:
-        try:
-            engine = _pyttsx3.init()
-            engine.setProperty("rate", self._rate)
-            engine.setProperty("volume", self._volume)
-            engine.say(text)
-            engine.runAndWait()
-        except Exception as exc:
-            print(f"[tts] pyttsx3 error: {exc}")
+            print(f"[tts] ElevenLabs error: {exc}")

@@ -22,8 +22,7 @@ torch>=2.0.0                # PyTorch CPU (MiDaS runs fine on CPU)
 Pillow>=10.0.0              # PIL Image input for HuggingFace pipeline
 
 # ── Audio / speech ────────────────────────────────────────────────────────────
-elevenlabs>=1.0.0           # primary TTS (set ELEVEN_API_KEY env var)
-pyttsx3>=2.90               # offline TTS fallback (no key needed)
+elevenlabs>=1.0.0           # TTS (set ELEVEN_API_KEY env var)
 SpeechRecognition>=3.10.0   # optional mic input
 pyaudio>=0.2.13             # microphone backend for SpeechRecognition
 python-dotenv>=1.0.0        # auto-load .env file

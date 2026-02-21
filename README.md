@@ -16,7 +16,6 @@
 
 ### Voice & Audio
 - [x] **ElevenLabs TTS** 🎙️ — natural, human-quality voice via `eleven_turbo_v2` model (`utils/tts.py`)
-- [x] **pyttsx3 fallback** — offline TTS if `ELEVEN_API_KEY` not set
 - [x] **Throttled speech** — speaks only on direction change or every ~1s (no spam)
 - [x] **`.env` support** — API key loaded automatically via `python-dotenv`
 - [x] **Continuous mic listener** — background thread, always listening (`utils/speech.py`)
@@ -103,7 +102,7 @@ wheredamilk/
 │   └── tracker.py       ← IoU single-target tracker
 │
 └── utils/
-    ├── tts.py           ← ElevenLabs TTS + pyttsx3 fallback
+    ├── tts.py           ← ElevenLabs TTS (throttled)
     └── speech.py        ← continuous mic listener
 ```
 
@@ -136,7 +135,7 @@ ELEVEN_VOICE_ID=Rachel        # optional — Rachel is default
 ```
 
 > The `.env` file is gitignored and **never pushed to GitHub**.
-> If no key is set, the app falls back to pyttsx3 (offline, robotic voice).
+> If no key is set, TTS will be disabled.
 
 ---
 
@@ -178,8 +177,7 @@ curl http://localhost:5000/status
 | `opencv-python` | Webcam + drawing |
 | `paddleocr` | Text recognition |
 | `transformers` + `timm` | MiDaS depth model |
-| `elevenlabs` | 🎙️ Natural TTS (primary) |
-| `pyttsx3` | Offline TTS fallback |
+| `elevenlabs` | 🎙️ Natural TTS |
 | `SpeechRecognition` | Mic voice commands |
 | `python-dotenv` | `.env` key loading |
 | `flask` | Optional REST API |
