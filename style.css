@@ -1,0 +1,715 @@
+/* ============================================================================
+   WhereDaMilk - Modern Frontend Styles
+   ============================================================================ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary: #FF6B35;
+    --secondary: #004E89;
+    --accent: #1A7F7E;
+    --light: #F7F7F7;
+    --dark: #1a1a1a;
+    --success: #10B981;
+    --error: #EF4444;
+    --text-primary: #1a1a1a;
+    --text-secondary: #666666;
+    --border-radius: 16px;
+    --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: var(--text-primary);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+/* ============================================================================
+   Background & Animations
+   ============================================================================ */
+
+.background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    overflow: hidden;
+}
+
+.blob {
+    position: absolute;
+    border-radius: 100%;
+    opacity: 0.7;
+    filter: blur(40px);
+}
+
+.blob-1 {
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle at 30% 30%, rgba(255, 107, 53, 0.6), transparent 70%);
+    top: -50px;
+    left: -50px;
+    animation: float 8s ease-in-out infinite;
+}
+
+.blob-2 {
+    width: 250px;
+    height: 250px;
+    background: radial-gradient(circle at 70% 70%, rgba(0, 78, 137, 0.6), transparent 70%);
+    top: 50%;
+    right: -75px;
+    animation: float 10s ease-in-out infinite reverse;
+}
+
+.blob-3 {
+    width: 280px;
+    height: 280px;
+    background: radial-gradient(circle at 50% 50%, rgba(26, 127, 126, 0.5), transparent 70%);
+    bottom: -100px;
+    left: 50%;
+    animation: float 12s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translate(0, 0) scale(1);
+    }
+    33% {
+        transform: translate(30px, -50px) scale(1.1);
+    }
+    66% {
+        transform: translate(-20px, 20px) scale(0.9);
+    }
+}
+
+/* ============================================================================
+   Container & Layout
+   ============================================================================ */
+
+.container {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.content {
+    flex: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 40px 20px;
+    position: relative;
+    z-index: 1;
+}
+
+/* ============================================================================
+   Header
+   ============================================================================ */
+
+.header {
+    text-align: center;
+    margin-bottom: 60px;
+    animation: slideDown 0.8s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.logo {
+    font-size: 60px;
+    animation: spin 3s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.title {
+    font-size: 3.5em;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -2px;
+}
+
+.subtitle {
+    font-size: 1.2em;
+    color: rgba(255, 255, 255, 0.9);
+    margin-top: 10px;
+    font-weight: 300;
+}
+
+/* ============================================================================
+   Hero Section
+   ============================================================================ */
+
+.hero {
+    margin-bottom: 80px;
+}
+
+.hero-text {
+    text-align: center;
+    margin-bottom: 60px;
+    animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.hero-text h2 {
+    font-size: 2.5em;
+    color: var(--light);
+    margin-bottom: 15px;
+    font-weight: 700;
+}
+
+.hero-text p {
+    font-size: 1.1em;
+    color: rgba(255, 255, 255, 0.85);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* ============================================================================
+   Features Grid
+   ============================================================================ */
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.feature-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: var(--border-radius);
+    padding: 30px;
+    text-align: center;
+    transition: var(--transition);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    animation: fadeInUp 0.8s ease-out both;
+}
+
+.feature-card:nth-child(1) {
+    animation-delay: 0.3s;
+}
+
+.feature-card:nth-child(2) {
+    animation-delay: 0.4s;
+}
+
+.feature-card:nth-child(3) {
+    animation-delay: 0.5s;
+}
+
+.feature-card:nth-child(4) {
+    animation-delay: 0.6s;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    border-color: var(--primary);
+}
+
+.feature-icon {
+    font-size: 3em;
+    margin-bottom: 15px;
+    display: inline-block;
+    animation: bounce 2s ease-in-out infinite;
+}
+
+.feature-card:nth-child(1) .feature-icon {
+    animation-delay: 0s;
+}
+
+.feature-card:nth-child(2) .feature-icon {
+    animation-delay: 0.2s;
+}
+
+.feature-card:nth-child(3) .feature-icon {
+    animation-delay: 0.4s;
+}
+
+.feature-card:nth-child(4) .feature-icon {
+    animation-delay: 0.6s;
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.feature-card h3 {
+    font-size: 1.3em;
+    margin-bottom: 10px;
+    color: var(--primary);
+}
+
+.feature-card p {
+    color: var(--text-secondary);
+    font-size: 0.95em;
+}
+
+/* ============================================================================
+   Initialization Section
+   ============================================================================ */
+
+.init-section {
+    margin-bottom: 80px;
+}
+
+.init-card {
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(20px);
+    border-radius: var(--border-radius);
+    padding: 50px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    animation: slideUp 0.8s ease-out 0.3s both;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.init-card h2 {
+    font-size: 2em;
+    color: var(--primary);
+    margin-bottom: 10px;
+}
+
+.init-card > p {
+    color: var(--text-secondary);
+    margin-bottom: 30px;
+    font-size: 1.05em;
+}
+
+/* Project Info */
+.project-info {
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.05), rgba(26, 127, 126, 0.05));
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 30px;
+    border-left: 4px solid var(--primary);
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    font-size: 1.05em;
+}
+
+.info-label {
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.info-value {
+    color: var(--primary);
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+}
+
+/* Initialize Button */
+.init-btn {
+    width: 100%;
+    padding: 16px 32px;
+    font-size: 1.1em;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 10px 30px rgba(255, 107, 53, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.init-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.2);
+    transition: left 0.5s ease;
+}
+
+.init-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px rgba(255, 107, 53, 0.4);
+}
+
+.init-btn:hover::before {
+    left: 100%;
+}
+
+.init-btn:active {
+    transform: translateY(-1px);
+}
+
+.init-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.btn-text {
+    font-weight: 700;
+}
+
+.btn-icon {
+    font-size: 1.3em;
+    transition: transform 0.3s ease;
+}
+
+.init-btn:hover .btn-icon {
+    transform: translateX(5px);
+}
+
+/* Loading Animation */
+.loading-container {
+    text-align: center;
+    padding: 30px 0;
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255, 107, 53, 0.2);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 15px;
+}
+
+.loading-text {
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+/* Success Message */
+.success-message {
+    text-align: center;
+    padding: 30px;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+    border-radius: 12px;
+    border: 2px solid var(--success);
+    animation: slideUp 0.5s ease-out;
+}
+
+.success-icon {
+    font-size: 3em;
+    color: var(--success);
+    margin-bottom: 15px;
+    animation: pulse 0.6s ease-out;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.success-message h3 {
+    color: var(--success);
+    font-size: 1.3em;
+    margin-bottom: 8px;
+}
+
+.success-message p {
+    color: var(--text-secondary);
+}
+
+/* Error Message */
+.error-message {
+    text-align: center;
+    padding: 30px;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05));
+    border-radius: 12px;
+    border: 2px solid var(--error);
+    animation: shake 0.5s ease-out;
+}
+
+@keyframes shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-10px);
+    }
+    75% {
+        transform: translateX(10px);
+    }
+}
+
+.error-icon {
+    font-size: 3em;
+    color: var(--error);
+    margin-bottom: 15px;
+}
+
+.error-message h3 {
+    color: var(--error);
+    font-size: 1.3em;
+    margin-bottom: 8px;
+}
+
+.error-message p {
+    color: var(--text-secondary);
+}
+
+/* ============================================================================
+   Commands Section
+   ============================================================================ */
+
+.commands-section {
+    margin-bottom: 80px;
+    animation: fadeInUp 0.8s ease-out 0.4s both;
+}
+
+.commands-section h2 {
+    font-size: 2em;
+    color: var(--light);
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.commands-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.command-item {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: var(--border-radius);
+    padding: 25px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    transition: var(--transition);
+}
+
+.command-item:hover {
+    transform: translateY(-8px);
+    border-color: var(--primary);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+.command-item code {
+    display: block;
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), rgba(26, 127, 126, 0.1));
+    color: var(--primary);
+    padding: 12px;
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+    font-weight: 600;
+    margin-bottom: 12px;
+    border-left: 3px solid var(--primary);
+}
+
+.command-item p {
+    color: var(--text-secondary);
+    font-size: 0.95em;
+}
+
+/* ============================================================================
+   Tech Stack Section
+   ============================================================================ */
+
+.tech-stack {
+    text-align: center;
+    animation: fadeInUp 0.8s ease-out 0.5s both;
+}
+
+.tech-stack h2 {
+    font-size: 2em;
+    color: var(--light);
+    margin-bottom: 40px;
+}
+
+.tech-badges {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+}
+
+.badge {
+    background: rgba(255, 255, 255, 0.95);
+    color: var(--primary);
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-weight: 600;
+    font-size: 0.95em;
+    border: 2px solid var(--primary);
+    transition: var(--transition);
+    display: inline-block;
+}
+
+.badge:hover {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: white;
+    transform: scale(1.05) rotateZ(2deg);
+}
+
+/* ============================================================================
+   Footer
+   ============================================================================ */
+
+.footer {
+    text-align: center;
+    padding: 40px 20px;
+    color: rgba(255, 255, 255, 0.8);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 60px;
+}
+
+/* ============================================================================
+   Responsive Design
+   ============================================================================ */
+
+@media (max-width: 768px) {
+    .title {
+        font-size: 2.5em;
+    }
+
+    .hero-text h2 {
+        font-size: 1.8em;
+    }
+
+    .init-card {
+        padding: 30px 20px;
+    }
+
+    .commands-section h2,
+    .tech-stack h2 {
+        font-size: 1.5em;
+    }
+
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .commands-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+
+    .content {
+        padding: 20px 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .title {
+        font-size: 2em;
+    }
+
+    .logo {
+        font-size: 40px;
+    }
+
+    .hero-text h2 {
+        font-size: 1.4em;
+    }
+
+    .init-btn {
+        padding: 12px 20px;
+        font-size: 1em;
+    }
+
+    .commands-grid,
+    .tech-badges {
+        gap: 10px;
+    }
+
+    .badge {
+        padding: 8px 15px;
+        font-size: 0.85em;
+    }
+}
