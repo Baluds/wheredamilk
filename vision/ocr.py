@@ -11,7 +11,7 @@ from paddleocr import PaddleOCR
 class OCRReader:
     def __init__(self):
         # use_angle_cls helps with rotated text; lang='en' for English
-        self._ocr = PaddleOCR(use_angle_cls=True, lang="en", show_log=False)
+        self._ocr = PaddleOCR(use_angle_cls=True, lang="en")
 
     def read_text(self, frame, box: dict) -> str:
         """

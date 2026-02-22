@@ -4,7 +4,7 @@
 
 ---
 
-## ✅ What's Done
+## ✅ What's Working
 
 ### Core Pipeline
 - [x] **YOLOv8n object detection** — real-time, 640×480, every 2nd frame (`vision/yolo.py`)
@@ -13,41 +13,25 @@
 - [x] **Keyword matching** — case-insensitive substring, e.g. "milk" in "DairyPure Whole Milk" (`logic/match.py`)
 - [x] **Spatial direction** — left/right/ahead from bbox centre + MiDaS depth (bbox-area fallback) (`logic/direction.py`)
 - [x] **IoU tracker** — locks onto target, tracks across frames, handles short occlusions (`logic/tracker.py`)
-
-### Voice & Audio
 - [x] **ElevenLabs TTS** 🎙️ — natural, human-quality voice via `eleven_turbo_v2` model (`utils/tts.py`)
 - [x] **Throttled speech** — speaks only on direction change or every ~1s (no spam)
-- [x] **`.env` support** — API key loaded automatically via `python-dotenv`
 - [x] **Continuous mic listener** — background thread, always listening (`utils/speech.py`)
 - [x] **Voice commands** — "find milk", "read", "stop", "quit"
-
-### Modes
 - [x] **Find mode** — YOLO → OCR top boxes → match → lock → track → speak directions continuously
 - [x] **Read mode** — OCR largest box → speak label text once
-
-### App
 - [x] **`main.py`** — fully voice-controlled webcam loop, OpenCV overlay
 - [x] **`app.py`** — optional Flask REST API (`/find`, `/read`, `/status`)
 
 ---
 
-## 🔜 To-Do
+## 🔜 Needs Work
 
-### Accuracy & Robustness
+- [ ] **End-to-end live testing** — run `main.py` with webcam, verify full pipeline
 - [ ] **Re-lock after occlusion** — if tracker loses target entirely, re-trigger OCR search
 - [ ] **Multi-target disambiguation** — two matching items visible → pick closer one via MiDaS
 - [ ] **Confidence-gated OCR** — skip OCR if YOLO confidence < threshold
 - [ ] **Vertical guidance** — "look higher / lower / bottom shelf"
-
-### Testing (live — requires webcam + deps)
-- [ ] Run `main.py`, confirm YOLO boxes appear
-- [ ] Test "find milk" with a printed label
-- [ ] Test "read" mode on product packaging
-- [ ] Confirm ElevenLabs voice fires on startup phrase
-- [ ] Confirm TTS throttle — no speech spam
-
-### Platform / Deployment
-- [ ] iOS / Android app → calls Flask `/find` and `/read`
+- [ ] **iOS / Android app** → calls Flask `/find` and `/read`
 
 ---
 

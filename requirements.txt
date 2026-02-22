@@ -16,7 +16,7 @@ paddleocr>=2.7.0            # OCR
 paddlepaddle>=2.5.0         # PaddlePaddle CPU (swap for paddlepaddle-gpu if needed)
 
 # ── MiDaS Depth Estimation ────────────────────────────────────────────────────
-transformers>=4.35.0,<5     # HuggingFace pipeline (hosts MiDaS)
+transformers>=4.35.0,<4.46  # HuggingFace pipeline (hosts MiDaS)
 timm>=0.9.0                 # MiDaS backbone dependency
 torch>=2.0.0                # PyTorch CPU (MiDaS runs fine on CPU)
 numpy<2                     # required for torch 2.2 compatibility

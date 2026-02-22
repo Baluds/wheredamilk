@@ -15,8 +15,13 @@ Usage:
     depth = estimator.box_depth(frame, box)   # 0.0 (close) → 1.0 (far)
 """
 
+import os
 import numpy as np
 import cv2
+
+# Ensure HuggingFace downloads are allowed (overrides TRANSFORMERS_OFFLINE if set in shell)
+os.environ["TRANSFORMERS_OFFLINE"] = "0"
+os.environ["HF_HUB_OFFLINE"] = "0"
 
 try:
     from transformers import pipeline as hf_pipeline
@@ -36,12 +41,17 @@ class DepthEstimator:
             self._pipe = None
             return
 
-        print("[depth] Loading MiDaS depth model (first run downloads ~400 MB)…")
-        self._pipe = hf_pipeline(
-            task="depth-estimation",
-            model=MODEL_ID,
-        )
-        print("[depth] MiDaS ready.")
+        try:
+            print("[depth] Loading MiDaS depth model (first run downloads ~400 MB)…")
+            self._pipe = hf_pipeline(
+                task="depth-estimation",
+                model=MODEL_ID,
+            )
+            print("[depth] MiDaS ready.")
+        except Exception as exc:
+            print(f"[depth] Could not load MiDaS: {exc}")
+            print("[depth] Depth estimation disabled — will use bbox-area fallback.")
+            self._pipe = None
 
     # ── Public API ────────────────────────────────────────────────────────────
 
