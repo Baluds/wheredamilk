@@ -32,6 +32,7 @@ except ImportError:
 from vision.yolo import YOLODetector
 from vision.ocr import OCRReader
 from vision.depth import DepthEstimator
+from vision.gemini import GeminiAnalyzer
 from logic.match import find_best_match
 from logic.direction import compute_direction
 from logic.tracker import IoUTracker
@@ -136,7 +137,7 @@ def draw_box(frame, box: dict, colour, label: str = ""):
         )
 
 
-def overlay_status(frame, mode: str, direction: str, locked: bool, what_waiting: bool = False):
+def overlay_status(frame, mode: str, direction: str, locked: bool, what_waiting: bool = False, loading: bool = False):
     status = f"Mode: {mode}"
     if direction:
         status += f"  |  {direction}"
@@ -144,9 +145,26 @@ def overlay_status(frame, mode: str, direction: str, locked: bool, what_waiting:
         status += "  [LOCKED]"
     if what_waiting:
         status += "  [ANALYZING...]"
+    if loading:
+        status += "  [⏳ LOADING...]"
     cv2.putText(frame, status, (10, 24), FONT, 0.6, (255, 255, 255), 2)
-    cv2.putText(frame, 'Say: "find <item>" | "what is this" | "read" | "stop" | "quit"',
+    cv2.putText(frame, 'Say: "find <item>" | "what is this" | "read" | "tell me more" | "stop" | "quit"',
                 (10, FRAME_H - 12), FONT, 0.45, (200, 200, 200), 1)
+
+
+def draw_loading_spinner(frame, position=(FRAME_W // 2, FRAME_H // 2), frame_num: int = 0):
+    """Draw a simple loading spinner animation."""
+    x, y = position
+    spinner_chars = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
+    # Use frame number to cycle through spinner animation
+    spinner_idx = (frame_num // 3) % len(spinner_chars)
+    
+    # Draw a circle background
+    cv2.circle(frame, (x, y), 40, (100, 100, 100), -1)
+    cv2.circle(frame, (x, y), 40, (255, 255, 255), 2)
+    
+    # Draw loading text
+    cv2.putText(frame, "🔄 Analyzing with Gemini...", (x - 120, y + 60), FONT, 0.5, (0, 255, 0), 2)
 
 
 # ── Main loop ─────────────────────────────────────────────────────────────────
@@ -167,6 +185,7 @@ def main():
     depth_est = DepthEstimator()      # MiDaS — graceful no-op if transformers not installed
     tracker   = IoUTracker()
     tts       = TTSEngine()
+    gemini    = GeminiAnalyzer()      # Gemini Vision API for detailed product analysis
     listener  = SpeechListener().start()
 
     # ---- State ----
@@ -177,6 +196,8 @@ def main():
     direction     = ""
     frame_count   = 0
     what_wait_frames = 0  # Counter for "what" mode delay (2-3 seconds)
+    details_loading = False  # For Gemini analysis (details mode)
+    details_frame_capture = None  # Store frame for Gemini analysis
 
     tts.speak("wheredamilk is ready.")
 
@@ -228,6 +249,18 @@ def main():
                 tts.reset_throttle()  # Allow new announcements on next mode
                 tts.speak_once("Reading.")
                 print("[main] Read mode.")
+
+            elif action == "details":
+                if not gemini.available():
+                    tts.speak_once("Gemini API is not configured. Please set your API key.")
+                    print("[main] Gemini not available")
+                else:
+                    mode = "details"
+                    details_loading = True
+                    details_frame_capture = frame.copy()
+                    tts.reset_throttle()
+                    tts.speak_once("Analyzing product details. Please wait.")
+                    print("[main] Details mode: capturing frame for Gemini analysis")
 
         # ── Quit via OpenCV window key ──────────────────────────────────────
         if cv2.waitKey(1) & 0xFF == ord("q"):
@@ -358,8 +391,39 @@ def main():
             tts.reset_throttle()
             mode = "idle"
 
+        elif mode == "details":
+            # Show loading indicator
+            if details_loading and details_frame_capture is not None:
+                draw_loading_spinner(frame, frame_num=frame_count)
+                
+                # Send frame to Gemini (only once)
+                if details_frame_capture is not None:
+                    print("[main] 🔄 Sending frame to Gemini for analysis...")
+                    result = gemini.identify_product(
+                        details_frame_capture,
+                        query="What is the main product in this image? List visible text. Give a brief description about the product, brand, ingredients if food, and any other useful information in 2-3 lines. "
+                    )
+                    
+                    if result.get("success"):
+                        response_text = result.get("answer", "No information available.")
+                        print(f"\n[main] ════════ GEMINI ANALYSIS ════════")
+                        print(f"{response_text}")
+                        print(f"[main] ════════════════════════════════════\n")
+                        
+                        # Speak the response
+                        tts.speak_once(response_text)
+                    else:
+                        error_msg = f"Analysis failed: {result.get('error', 'Unknown error')}"
+                        print(f"[main] ❌ {error_msg}")
+                        tts.speak_once("Analysis failed. Please try again.")
+                    
+                    details_loading = False
+                    details_frame_capture = None
+                    tts.reset_throttle()
+                    mode = "idle"
+
         # ── HUD overlay ───────────────────────────────────────────────────────
-        overlay_status(frame, mode, direction, target_locked, mode == "what")
+        overlay_status(frame, mode, direction, target_locked, mode == "what", loading=details_loading)
         cv2.imshow("wheredamilk", frame)
 
     # ── Cleanup ───────────────────────────────────────────────────────────────

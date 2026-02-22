@@ -11,6 +11,8 @@ Supported commands (examples):
     "what is this"  → ("what", "")
     "what does this say" → ("what", "")
     "read"         → ("read", "")
+    "tell me more about this product" → ("details", "")
+    "tell me more"  → ("details", "")
     "stop"         → ("stop", "")
     "quit"         → ("quit", "")
 
@@ -49,6 +51,9 @@ def parse_command(text: str) -> tuple[str, str] | None:
 
     if text in ("read", "read this"):
         return ("read", "")
+
+    if text in ("tell me more", "tell me more about this", "tell me more about this product", "more details", "more information"):
+        return ("details", "")
 
     if text in ("stop", "cancel"):
         return ("stop", "")

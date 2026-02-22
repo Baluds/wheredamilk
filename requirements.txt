@@ -24,6 +24,7 @@ edge-tts>=6.1.0             # Fallback TTS via Microsoft Edge (no API key needed
 SpeechRecognition>=3.10.0   # optional mic input
 pyaudio>=0.2.13             # microphone backend for SpeechRecognition
 python-dotenv>=1.0.0        # auto-load .env file
-
+# ── AI Vision (optional) ──────────────────────────────────────────────────────
+google-generativeai>=0.3.0  # Google Gemini Vision API (optional, requires API key)
 # ── API (optional) ────────────────────────────────────────────────────────────
 flask>=3.0.0
