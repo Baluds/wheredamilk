@@ -8,6 +8,8 @@ nothing new).
 Supported commands (examples):
     "find milk"    → ("find", "milk")
     "find orange juice" → ("find", "orange juice")
+    "what is this"  → ("what", "")
+    "what does this say" → ("what", "")
     "read"         → ("read", "")
     "stop"         → ("stop", "")
     "quit"         → ("quit", "")
@@ -42,7 +44,10 @@ def parse_command(text: str) -> tuple[str, str] | None:
         query = text[len("find "):].strip()
         return ("find", query) if query else None
 
-    if text in ("read", "read this", "what is this", "what does this say"):
+    if text in ("what is this", "what does this say", "what is it"):
+        return ("what", "")
+
+    if text in ("read", "read this"):
         return ("read", "")
 
     if text in ("stop", "cancel"):

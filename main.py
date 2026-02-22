@@ -2,9 +2,9 @@
 main.py — wheredamilk webcam main loop (voice-controlled).
 
 SPEAK to control the app:
-    "find milk"    → Find mode: scan for milk, lock on, give spoken directions
-    "find <item>"  → Find any item you name
-    "read"         → Read mode: OCR largest box, speak the text once
+    "find <item>"  → Find mode: scan for item, lock on, give spoken directions
+    "what is this" → Wait 2-3 seconds, identify detected object, speak once
+    "read"         → OCR largest box, speak the text once
     "stop"         → Cancel current mode, return to idle
     "quit"         → Exit
 
@@ -15,7 +15,8 @@ Frame pipeline:
     2. Skip odd frames (process every 2nd)
     3. YOLOv8 detection → top-2 boxes by confidence
     4. "find" mode → OCR candidates until target locked, then track + guide
-    5. "read" mode → OCR largest box, speak once, reset to idle
+    5. "what" mode → wait 2-3 seconds, then OCR largest box and speak once
+    6. "read" mode → OCR largest box, speak once, reset to idle
 """
 
 import sys
@@ -68,14 +69,16 @@ def draw_box(frame, box: dict, colour, label: str = ""):
         )
 
 
-def overlay_status(frame, mode: str, direction: str, locked: bool):
+def overlay_status(frame, mode: str, direction: str, locked: bool, what_waiting: bool = False):
     status = f"Mode: {mode}"
     if direction:
         status += f"  |  {direction}"
     if locked:
         status += "  [LOCKED]"
+    if what_waiting:
+        status += "  [ANALYZING...]"
     cv2.putText(frame, status, (10, 24), FONT, 0.6, (255, 255, 255), 2)
-    cv2.putText(frame, 'Say: "find <item>" | "read" | "stop" | "quit"',
+    cv2.putText(frame, 'Say: "find <item>" | "what is this" | "read" | "stop" | "quit"',
                 (10, FRAME_H - 12), FONT, 0.45, (200, 200, 200), 1)
 
 
@@ -106,8 +109,9 @@ def main():
     target_locked = False
     direction     = ""
     frame_count   = 0
+    what_wait_frames = 0  # Counter for "what" mode delay (2-3 seconds)
 
-    tts.speak("wheredamilk is ready. Say find, followed by what you're looking for.")
+    tts.speak("wheredamilk is ready.")
 
     # ---- Main loop ----
     while True:
@@ -128,7 +132,8 @@ def main():
                 target_box    = None
                 target_locked = False
                 direction     = ""
-                tts.speak("Stopped.")
+                tts.reset_throttle()  # Allow new announcements on next mode
+                tts.speak_once("Stopped.")
 
             elif action == "find":
                 query         = arg
@@ -136,14 +141,25 @@ def main():
                 target_box    = None
                 target_locked = False
                 direction     = ""
-                tts.speak(f"Looking for {query}.")
+                tts.reset_throttle()  # Allow new announcements on next mode
+                tts.speak_once(f"Looking for {query}.")
                 print(f"[main] Find mode: query='{query}'")
+
+            elif action == "what":
+                mode             = "what"
+                target_box       = None
+                target_locked    = False
+                what_wait_frames = 0
+                tts.reset_throttle()  # Allow new announcements on next mode
+                tts.speak_once("Analyzing object. Please hold still.")
+                print("[main] What mode: waiting 2-3 seconds before identification.")
 
             elif action == "read":
                 mode          = "read"
                 target_box    = None
                 target_locked = False
-                tts.speak("Reading.")
+                tts.reset_throttle()  # Allow new announcements on next mode
+                tts.speak_once("Reading.")
                 print("[main] Read mode.")
 
         # ── Quit via OpenCV window key ──────────────────────────────────────
@@ -163,7 +179,30 @@ def main():
         for b in boxes:
             draw_box(frame, b, COL_DEFAULT, b["cls_name"])
 
-        if mode == "find" and query:
+        if mode == "what":
+            # Wait 2-3 seconds (approximately 75 raw frames at ~30fps)
+            what_wait_frames += 1
+            b = largest_box(boxes)
+            if b is not None:
+                draw_box(frame, b, COL_TARGET, "waiting…")
+            
+            if what_wait_frames >= 75:  # ~2.5 seconds
+                if b is not None:
+                    # Perform OCR and identify the object
+                    text = ocr.read_text(frame, b)
+                    obj_class = b["cls_name"]
+                    result = f"{obj_class}"
+                    if text:
+                        result += f": {text}"
+                    print(f"[main] What: {result}")
+                    tts.speak_once(result)
+                else:
+                    tts.speak_once("Nothing detected.")
+                mode = "idle"
+                what_wait_frames = 0
+                tts.reset_throttle()  # Reset throttle for next mode
+
+        elif mode == "find" and query:
             candidates = boxes[:TOP_K]
 
             if not target_locked:
@@ -199,14 +238,16 @@ def main():
                 tts.speak_once(read_result)
             else:
                 tts.speak_once("Nothing detected.")
+            tts.reset_throttle()
             mode = "idle"
 
         # ── HUD overlay ───────────────────────────────────────────────────────
-        overlay_status(frame, mode, direction, target_locked)
+        overlay_status(frame, mode, direction, target_locked, mode == "what")
         cv2.imshow("wheredamilk", frame)
 
     # ── Cleanup ───────────────────────────────────────────────────────────────
     listener.stop()
+    tts.stop()
     cap.release()
     cv2.destroyAllWindows()
     print("wheredamilk stopped.")

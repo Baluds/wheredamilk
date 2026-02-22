@@ -97,7 +97,12 @@ SKIP_N  = 2
 TOP_K   = 2
 
 
-def vision_loop():
+def vision_loop(tts):
+    """Vision processing loop.
+    
+    Args:
+        tts: Shared TTSEngine instance (to avoid duplicate engines)
+    """
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
         print("[vision] Cannot open webcam — vision thread exiting.")
@@ -108,7 +113,6 @@ def vision_loop():
     detector = YOLODetector()
     ocr = OCRReader()
     tracker = IoUTracker()
-    tts = TTSEngine()
 
     frame_count = 0
 
@@ -166,7 +170,10 @@ def vision_loop():
 # ── Entry point ───────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    t = threading.Thread(target=vision_loop, daemon=True)
+    # Create single shared TTS instance
+    tts = TTSEngine()
+    # Pass TTS to vision loop to avoid duplicate instances
+    t = threading.Thread(target=vision_loop, args=(tts,), daemon=True)
     t.start()
     print("wheredamilk Flask server on http://0.0.0.0:5000")
     app.run(host="0.0.0.0", port=5000, debug=False)
