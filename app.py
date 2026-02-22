@@ -153,6 +153,7 @@ def vision_loop():
             if boxes:
                 b = max(boxes, key=lambda x: (x["x2"] - x["x1"]) * (x["y2"] - x["y1"]))
                 text = ocr.read_text(frame, b)
+                print(f"[vision] Read mode detected text: {text}")
                 tts.speak_once(text or "No text found.")
             else:
                 tts.speak_once("Nothing detected.")
