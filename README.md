@@ -156,48 +156,6 @@ brew install portaudio && pip install pyaudio
 
 ---
 
-## Code Architecture (v2.0 Refactor) 🏗️
-
-**Refactor Goal:** Make codebase modular, testable, and maintainable.
-
-### Key Changes
-- **Extracted mode logic into handler classes** (`logic/modes.py`)
-  - Each mode: FindModeHandler, WhatModeHandler, ReadModeHandler, DetailsModeHandler
-  - Consistent interface: `start()` → `process()` → `reset_state()`
-- **Cleaned main.py** from 450→200 lines
-- **Decoupled concerns:** mode logic vs. orchestration
-- **Easy to extend:** add new mode by creating new handler class
-- **Testable:** unit test each mode independently
-
-### Mode Handler Pattern
-
-```python
-class FindModeHandler:
-    def start(query):              # Initialize mode
-        # Set up state, announce to user
-    
-    def process(boxes, frame):     # Run each frame
-        # Execute mode logic, return (is_complete, result)
-    
-    def reset_state():             # Cleanup
-        # Clear state for next mode
-```
-
-### File Organization
-- `logic/modes.py` — All 4 mode implementations (350 lines)
-- `main.py` — Clean orchestration (200 lines)
-- `vision/gemini.py` — Gemini API client (token-optimized)
-- `utils/tts.py` — Thread-safe TTS with fallbacks
-
-### Benefits
-✅ **Modular:** Each mode in own class  
-✅ **Readable:** Clear flow and dependencies  
-✅ **Maintainable:** Bug in "find"? Check `FindModeHandler`  
-✅ **Extensible:** Add "compare" mode = add new handler class  
-✅ **Testable:** Mock dependencies, test modes in isolation  
-
----
-
 ## Text Recognition (EasyOCR) ✨
 
 **EasyOCR** provides high-quality text recognition comparable to Google ML Kit. No setup needed — works automatically.
