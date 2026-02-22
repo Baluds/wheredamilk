@@ -2,6 +2,7 @@
 
 > Real-time assistive vision — **find items**, **read labels**, and **get details** by speaking. AI-powered object detection, text recognition, and voice guidance.
 
+[![Demo Video](http://img.youtube.com/vi/gTKes_XwjXY/0.jpg)](http://www.youtube.com/watch?v=gTKes_XwjXY "WheredaMilk?")
 ---
 
 ## 🎯 Modes
