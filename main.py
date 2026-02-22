@@ -31,11 +31,10 @@ except ImportError:
 
 from vision.yolo import YOLODetector
 from vision.ocr import OCRReader
-from vision.depth import DepthEstimator
 from vision.gemini import GeminiAnalyzer
 from logic.match import find_best_match
-from logic.direction import compute_direction
 from logic.tracker import IoUTracker
+from logic.modes import FindModeHandler, WhatModeHandler, ReadModeHandler, DetailsModeHandler
 from utils.tts import TTSEngine
 from utils.speech import SpeechListener
 
@@ -182,22 +181,20 @@ def main():
     # ---- Module init ----
     detector  = YOLODetector()
     ocr       = OCRReader()
-    depth_est = DepthEstimator()      # MiDaS — graceful no-op if transformers not installed
     tracker   = IoUTracker()
     tts       = TTSEngine()
     gemini    = GeminiAnalyzer()      # Gemini Vision API for detailed product analysis
     listener  = SpeechListener().start()
 
+    # ---- Mode handlers ----
+    find_handler = FindModeHandler(detector, ocr, tracker, tts, gemini)
+    what_handler = WhatModeHandler(detector, ocr, tracker, tts, gemini)
+    read_handler = ReadModeHandler(detector, ocr, tracker, tts, gemini)
+    details_handler = DetailsModeHandler(detector, ocr, tracker, tts, gemini)
+
     # ---- State ----
     mode          = "idle"
-    query         = ""
-    target_box    = None
-    target_locked = False
-    direction     = ""
     frame_count   = 0
-    what_wait_frames = 0  # Counter for "what" mode delay (2-3 seconds)
-    details_loading = False  # For Gemini analysis (details mode)
-    details_frame_capture = None  # Store frame for Gemini analysis
 
     tts.speak("wheredamilk is ready.")
 
@@ -216,51 +213,31 @@ def main():
                 break
 
             elif action == "stop":
-                mode          = "idle"
-                target_box    = None
-                target_locked = False
-                direction     = ""
-                tts.reset_throttle()  # Allow new announcements on next mode
+                if mode != "idle":
+                    mode_handler = locals().get(f"{mode}_handler")
+                    if mode_handler:
+                        mode_handler.reset_state()
+                mode = "idle"
+                tts.reset_throttle()
                 tts.speak_once("Stopped.")
 
             elif action == "find":
-                query         = arg
-                mode          = "find"
-                target_box    = None
-                target_locked = False
-                direction     = ""
-                tts.reset_throttle()  # Allow new announcements on next mode
-                tts.speak_once(f"Looking for {query}.")
-                print(f"[main] Find mode: query='{query}'")
+                find_handler.start(arg)
+                mode = "find"
 
             elif action == "what":
-                mode             = "what"
-                target_box       = None
-                target_locked    = False
-                what_wait_frames = 0
-                tts.reset_throttle()  # Allow new announcements on next mode
-                tts.speak_once("Analyzing object. Please hold still.")
-                print("[main] What mode: waiting 2-3 seconds before identification.")
+                what_handler.start()
+                mode = "what"
 
             elif action == "read":
-                mode          = "read"
-                target_box    = None
-                target_locked = False
-                tts.reset_throttle()  # Allow new announcements on next mode
-                tts.speak_once("Reading.")
-                print("[main] Read mode.")
+                read_handler.start()
+                mode = "read"
 
             elif action == "details":
-                if not gemini.available():
-                    tts.speak_once("Gemini API is not configured. Please set your API key.")
-                    print("[main] Gemini not available")
-                else:
+                if details_handler.start(frame):
                     mode = "details"
-                    details_loading = True
-                    details_frame_capture = frame.copy()
-                    tts.reset_throttle()
-                    tts.speak_once("Analyzing product details. Please wait.")
-                    print("[main] Details mode: capturing frame for Gemini analysis")
+                else:
+                    mode = "idle"
 
         # ── Quit via OpenCV window key ──────────────────────────────────────
         if cv2.waitKey(1) & 0xFF == ord("q"):
@@ -280,150 +257,40 @@ def main():
             draw_box(frame, b, COL_DEFAULT, b["cls_name"])
 
         if mode == "what":
-            # Wait 1-2 seconds (approximately 40 raw frames at ~30fps)
-            what_wait_frames += 1
-            b = largest_box_excluding(boxes)  # Exclude "person" class
-            if b is not None:
-                draw_box(frame, b, COL_TARGET, "waiting…")
-            
-            if what_wait_frames >= 40:  
-                # Run OCR on ALL detected boxes
-                enriched_boxes = ocr.enrich_detections(frame, boxes)
-                
-                # Print all detected text to terminal
-                print(f"\n[main] ════════ WHAT MODE: ALL DETECTIONS ════════")
-                all_text_items = []
-                for enriched_box in enriched_boxes:
-                    cls_name = enriched_box["cls_name"]
-                    text = enriched_box["text"]
-                    confidence = enriched_box["text_conf"]
-                    
-                    if text:
-                        print(f"  [{cls_name}] Text: '{text}' (OCR conf: {confidence:.2f})")
-                        all_text_items.append(f"{cls_name}: {text}")
-                    else:
-                        print(f"  [{cls_name}] No text detected")
-                
-                # Speak the main object (largest non-person box)
-                if b is not None:
-                    text = b.get("text", ocr.read_text(frame, b))
-                    obj_class = b["cls_name"]
-                    position = get_box_position(b, FRAME_W, FRAME_H)
-                    
-                    # Build announcement: "cup on your left" or "bottle center: WATER"
-                    result = f"{obj_class} (on your {position})"
-                    if text:
-                        result += f": {text}"
-                    
-                    print(f"[main] Speaking: {result}")
-                    tts.speak_once(result)
-                else:
-                    tts.speak_once("Nothing detected.")
-                
-                print(f"[main] ════════════════════════════════════════════\n")
-                
+            is_complete, announcement = what_handler.process(boxes, frame, get_box_position)
+            if is_complete:
+                tts.speak_once(announcement)
+                what_handler.reset_state()
                 mode = "idle"
-                what_wait_frames = 0
-                tts.reset_throttle()  # Reset throttle for next mode
 
-        elif mode == "find" and query:
-            candidates = boxes[:TOP_K]
-
-            if not target_locked:
-                # OCR the top candidates to find the target
-                texts = [ocr.read_text(frame, b) for b in candidates]
-                idx   = find_best_match(texts, query)
-                if idx != -1:
-                    target_box    = candidates[idx]
-                    target_locked = True
-                    tts.speak(f"Found {query}!")
-                    print(f"[main] Target locked: {target_box}")
-                else:
-                    # Visual hint on scanning candidates
-                    for b in candidates:
-                        draw_box(frame, b, COL_TARGET, "scanning…")
-
+        elif mode == "find":
+            target_locked, target_box = find_handler.process(boxes, frame, get_box_position)
             if target_locked and target_box is not None:
-                target_box = tracker.update(boxes, target_box)
-                depth_val  = depth_est.box_depth(frame, target_box)   # None if model unavailable
-                direction  = compute_direction(target_box, FRAME_W, FRAME_H, depth_val)
-                src = "MiDaS" if depth_val is not None else "bbox-area"
-                print(f"[main] Direction ({src}): {direction}")
-                tts.speak(f"{query} — {direction}")
-                draw_box(frame, target_box, COL_LOCKED, f"TARGET: {query}")
+                draw_box(frame, target_box, COL_LOCKED, f"TARGET: {find_handler.query}")
 
         elif mode == "read":
-            b = largest_box_excluding(boxes)  # Exclude "person" class
-            
-            # Run OCR on ALL detected boxes
-            enriched_boxes = ocr.enrich_detections(frame, boxes)
-            
-            # Print all detected text to terminal
-            print(f"\n[main] ════════ READ MODE: ALL DETECTIONS ════════")
-            all_text = []
-            for enriched_box in enriched_boxes:
-                cls_name = enriched_box["cls_name"]
-                text = enriched_box["text"]
-                confidence = enriched_box["text_conf"]
-                
-                if text:
-                    print(f"  [{cls_name}] '{text}' (OCR conf: {confidence:.2f})")
-                    all_text.append(text)
-            
-            # Speak text from the largest non-person box
-            if b is not None:
-                draw_box(frame, b, COL_TARGET, "reading…")
-                text = b.get("text", ocr.read_text(frame, b))
-                obj_class = b["cls_name"]
-                position = get_box_position(b, FRAME_W, FRAME_H)
-                
-                # Build announcement with position
-                read_result = text if text else "No text found."
-                read_result = f"{obj_class} (on your {position}): {read_result}"
-                
-                print(f"[main] Speaking (primary object): {read_result}")
-                tts.speak_once(read_result)
-            else:
-                tts.speak_once("Nothing detected.")
-            
-            print(f"[main] ════════════════════════════════════════════\n")
-            
-            tts.reset_throttle()
-            mode = "idle"
+            is_complete, announcement = read_handler.process(boxes, frame, get_box_position)
+            if is_complete:
+                tts.speak_once(announcement)
+                read_handler.reset_state()
+                mode = "idle"
 
         elif mode == "details":
-            # Show loading indicator
-            if details_loading and details_frame_capture is not None:
+            is_complete, result_text = details_handler.process()
+            if is_complete:
+                if result_text:
+                    tts.speak_once(result_text)
+                details_handler.reset_state()
+                mode = "idle"
+            else:
+                # Show loading spinner while processing
                 draw_loading_spinner(frame, frame_num=frame_count)
-                
-                # Send frame to Gemini (only once)
-                if details_frame_capture is not None:
-                    print("[main] 🔄 Sending frame to Gemini for analysis...")
-                    result = gemini.identify_product(
-                        details_frame_capture,
-                        query="What is the main product in this image? List visible text. Give a brief description about the product, brand, ingredients if food, and any other useful information in 2-3 lines. "
-                    )
-                    
-                    if result.get("success"):
-                        response_text = result.get("answer", "No information available.")
-                        print(f"\n[main] ════════ GEMINI ANALYSIS ════════")
-                        print(f"{response_text}")
-                        print(f"[main] ════════════════════════════════════\n")
-                        
-                        # Speak the response
-                        tts.speak_once(response_text)
-                    else:
-                        error_msg = f"Analysis failed: {result.get('error', 'Unknown error')}"
-                        print(f"[main] ❌ {error_msg}")
-                        tts.speak_once("Analysis failed. Please try again.")
-                    
-                    details_loading = False
-                    details_frame_capture = None
-                    tts.reset_throttle()
-                    mode = "idle"
 
         # ── HUD overlay ───────────────────────────────────────────────────────
-        overlay_status(frame, mode, direction, target_locked, mode == "what", loading=details_loading)
+        locked = mode == "find" and find_handler.target_locked
+        loading = mode == "details" and details_handler.loading
+        waiting = mode == "what"
+        overlay_status(frame, mode, "", locked, waiting, loading)
         cv2.imshow("wheredamilk", frame)
 
     # ── Cleanup ───────────────────────────────────────────────────────────────

@@ -1,37 +1,73 @@
 # wheredamilk 🥛
 
-> Real-time assistive vision — **find items** and **read labels** by speaking, guided by AI-powered depth and voice guidance.
+> Real-time assistive vision — **find items**, **read labels**, and **get details** by speaking. AI-powered object detection, text recognition, and voice guidance.
 
 ---
 
-## ✅ What's Working
+## 🎯 Modes
 
-### Core Pipeline
-- [x] **YOLOv8n object detection** — real-time, 640×480, every 2nd frame (`vision/yolo.py`)
-- [x] **EasyOCR text reading** — high-quality OCR comparable to Google ML Kit, crops top-1/2 boxes by confidence, reads label text (`vision/ocr.py`)
-- [x] **MiDaS monocular depth** — real depth from a single RGB webcam, no depth camera needed (`vision/depth.py`)
-- [x] **Keyword matching** — case-insensitive substring, e.g. "milk" in "DairyPure Whole Milk" (`logic/match.py`)
-- [x] **Spatial direction** — left/right/ahead from bbox centre + MiDaS depth (bbox-area fallback) (`logic/direction.py`)
-- [x] **IoU tracker** — locks onto target, tracks across frames, handles short occlusions (`logic/tracker.py`)
-- [x] **ElevenLabs TTS** 🎙️ — natural, human-quality voice via `eleven_turbo_v2` model, with **edge-tts fallback** (Microsoft Edge voices, no API key needed) (`utils/tts.py`)
-- [x] **Throttled speech** — speaks only on direction change or every ~1s (no spam)
-- [x] **Continuous mic listener** — background thread, always listening (`utils/speech.py`)
-- [x] **Voice commands** — "find milk", "read", "stop", "quit"
-- [x] **Find mode** — YOLO → OCR top boxes → match → lock → track → speak directions continuously
-- [x] **Read mode** — OCR largest box → speak label text once
-- [x] **`main.py`** — fully voice-controlled webcam loop, OpenCV overlay
-- [x] **`app.py`** — optional Flask REST API (`/find`, `/read`, `/status`)
+The app has **4 distinct modes**, each engineered for a specific task:
+
+### **1. FIND Mode** 🔍
+**Command:** `"find milk"` or `"find orange juice"`
+
+**What it does:**
+- Scans the scene for an object matching your query
+- Uses **two-stage matching:**
+  1. First tries YOLO object classes (fast, accurate for trained objects like "bottle", "cup")
+  2. Falls back to OCR text matching (flexible, finds labeled items like "COCA-COLA", "JUICE")
+- Once found, **locks onto the target** and tracks it silently (no spam)
+- Announces location once: *"Found milk on your left!"*
+- Continues tracking with visual feedback
+
+**Best for:** Finding specific products in a cluttered scene
 
 ---
 
-## 🔜 Needs Work
+### **2. WHAT Mode** 🤔
+**Command:** `"what is this"` or `"what does this say"`
 
-- [ ] **End-to-end live testing** — run `main.py` with webcam, verify full pipeline
-- [ ] **Re-lock after occlusion** — if tracker loses target entirely, re-trigger OCR search
-- [ ] **Multi-target disambiguation** — two matching items visible → pick closer one via MiDaS
-- [ ] **Confidence-gated OCR** — skip OCR if YOLO confidence < threshold
-- [ ] **Vertical guidance** — "look higher / lower / bottom shelf"
-- [ ] **iOS / Android app** → calls Flask `/find` and `/read`
+**What it does:**
+- Waits 2-3 seconds (gives you time to stabilize the camera on an object)
+- Identifies the **object class** and **position** on screen
+- Announces once: *"I see a bottle on your center."*
+- Automatically returns to idle
+
+**Best for:** Quick identification of objects you're pointing at
+
+---
+
+### **3. READ Mode** 📖
+**Command:** `"read"` or `"read this"`
+
+**What it does:**
+- **Immediately** finds the largest non-person object
+- Runs OCR to extract all visible text
+- Announces only the text: *"The text reads: COCA-COLA CLASSIC"*
+- Automatically returns to idle
+
+**Best for:** Reading labels, barcodes, or any text on a single object
+
+---
+
+### **4. DETAILS Mode** ✨ (Powered by Google Gemini)
+**Command:** `"tell me more"` or `"tell me more about this product"`
+
+**What it does:**
+- Sends current frame to **Google Gemini Vision AI**
+- Gets **detailed product analysis:** brand, ingredients (if food), use, weight, nutritional info
+- Shows loading spinner while analyzing (2-5 seconds)
+- Reads the full analysis aloud: *"This is Coca-Cola Classic, a carbonated soft drink from The Coca-Cola Company..."*
+- Automatically returns to idle
+
+**Setup required:** 
+```bash
+export GEMINI_API_KEY=your_api_key
+```
+
+Get your free API key from: https://ai.google.dev/
+
+**Best for:** Deep product understanding, ingredient checking, brand verification
 
 ---
 
@@ -40,23 +76,31 @@
 ```
 Voice Command ("find milk")
         ↓
-Mic Listener (background thread)    utils/speech.py
+SpeechListener (background thread)   utils/speech.py
         ↓
-Webcam (OpenCV 640×480)
+Webcam Frame (OpenCV 640×480)
         ↓
-YOLOv8n — detect objects            vision/yolo.py
+YOLOv8n Detection                    vision/yolo.py
         ↓
-MiDaS — estimate depth              vision/depth.py
+Mode Handler                         logic/modes.py
+├── FindModeHandler
+│   ├─ Match YOLO classes
+│   └─ Fallback to OCR
+├── WhatModeHandler
+│   ├─ Wait 2-3s
+│   └─ Identify & position
+├── ReadModeHandler
+│   └─ Extract text
+└── DetailsModeHandler
+    └─ Gemini Vision API
         ↓
-EasyOCR — read text on crop         vision/ocr.py
+EasyOCR Text Recognition             vision/ocr.py
         ↓
-Keyword match                       logic/match.py
+IoU Tracker                           logic/tracker.py
         ↓
-IoU Tracker — lock target           logic/tracker.py
+Keyword Matching                      logic/match.py
         ↓
-Direction (left/right + depth)      logic/direction.py
-        ↓
-ElevenLabs TTS 🎙️ (throttled)       utils/tts.py
+ElevenLabs/edge-tts 🎙️               utils/tts.py
 ```
 
 ---
@@ -65,7 +109,7 @@ ElevenLabs TTS 🎙️ (throttled)       utils/tts.py
 
 ```
 wheredamilk/
-├── .env                 ← API keys (gitignored, never pushed)
+├── .env                 ← API keys (gitignored)
 ├── main.py              ← voice-controlled webcam loop
 ├── app.py               ← Flask REST API (optional)
 ├── requirements.txt
@@ -74,17 +118,23 @@ wheredamilk/
 ├── vision/
 │   ├── yolo.py          ← YOLOv8n detector
 │   ├── ocr.py           ← EasyOCR wrapper
-│   └── depth.py         ← MiDaS monocular depth
+│   └── gemini.py        ← Google Gemini Vision API
 │
 ├── logic/
 │   ├── match.py         ← keyword matching
-│   ├── direction.py     ← left/right/ahead + real depth
-│   └── tracker.py       ← IoU single-target tracker
+│   ├── tracker.py       ← IoU single-target tracker
+│   └── modes.py         ← Mode handlers (FIND, WHAT, READ, DETAILS)
 │
 └── utils/
-    ├── tts.py           ← ElevenLabs TTS (throttled)
+    ├── tts.py           ← ElevenLabs + edge-tts (throttled)
     └── speech.py        ← continuous mic listener
 ```
+
+**Key files:**
+- `main.py` — orchestrates all modes, ~200 lines vs ~450 before refactor
+- `logic/modes.py` — encapsulates each mode's logic in handler classes (NEW)
+- `vision/gemini.py` — Gemini Vision API integration (token-optimized)
+- `utils/tts.py` — queue-based thread-safe TTS with fallbacks
 
 ---
 
@@ -102,6 +152,48 @@ brew install portaudio && pip install pyaudio
 ```
 
 > **Note:** EasyOCR may take 30-60 seconds to initialize on first run as it downloads the model.
+
+---
+
+## Code Architecture (v2.0 Refactor) 🏗️
+
+**Refactor Goal:** Make codebase modular, testable, and maintainable.
+
+### Key Changes
+- **Extracted mode logic into handler classes** (`logic/modes.py`)
+  - Each mode: FindModeHandler, WhatModeHandler, ReadModeHandler, DetailsModeHandler
+  - Consistent interface: `start()` → `process()` → `reset_state()`
+- **Cleaned main.py** from 450→200 lines
+- **Decoupled concerns:** mode logic vs. orchestration
+- **Easy to extend:** add new mode by creating new handler class
+- **Testable:** unit test each mode independently
+
+### Mode Handler Pattern
+
+```python
+class FindModeHandler:
+    def start(query):              # Initialize mode
+        # Set up state, announce to user
+    
+    def process(boxes, frame):     # Run each frame
+        # Execute mode logic, return (is_complete, result)
+    
+    def reset_state():             # Cleanup
+        # Clear state for next mode
+```
+
+### File Organization
+- `logic/modes.py` — All 4 mode implementations (350 lines)
+- `main.py` — Clean orchestration (200 lines)
+- `vision/gemini.py` — Gemini API client (token-optimized)
+- `utils/tts.py` — Thread-safe TTS with fallbacks
+
+### Benefits
+✅ **Modular:** Each mode in own class  
+✅ **Readable:** Clear flow and dependencies  
+✅ **Maintainable:** Bug in "find"? Check `FindModeHandler`  
+✅ **Extensible:** Add "compare" mode = add new handler class  
+✅ **Testable:** Mock dependencies, test modes in isolation  
 
 ---
 
@@ -142,29 +234,72 @@ If **no ElevenLabs key is set**, the app automatically falls back to **edge-tts*
 
 ## Usage
 
-### Run
+### Run the app
 
 ```bash
 python main.py
 ```
 
-| Say | What happens |
-|---|---|
-| `"find milk"` | Scans scene, locks on milk, speaks live directions |
-| `"find orange juice"` | Works for any item name |
-| `"read"` / `"what is this"` | OCRs biggest box, speaks the label once |
-| `"stop"` / `"cancel"` | Return to idle |
-| `"quit"` / `"exit"` | Close app |
+### Voice Commands
 
-Press `q` in the OpenCV window to also quit.
+| Say | Mode | What Happens |
+|---|---|---|
+| `"find milk"` | **FIND** | Scans for "milk" (YOLO class OR text), locks on, tracks silently |
+| `"find orange juice"` | **FIND** | Works for any item name with spaces |
+| `"what is this"` | **WHAT** | Waits 2-3s, identifies object, announces position once |
+| `"what does this say"` | **WHAT** | Same as above |
+| `"read"` | **READ** | Immediately OCRs largest object, reads text once |
+| `"read this"` | **READ** | Same as above |
+| `"tell me more"` | **DETAILS** | Sends to Gemini, gets detailed product info |
+| `"tell me more about this product"` | **DETAILS** | Same as above |
+| `"stop"` / `"cancel"` | Any | Returns to idle, stops current mode |
+| `"quit"` / `"exit"` | Any | Closes app |
+
+**Press `q` in the OpenCV window to also quit.**
+
+---
+
+## Configuration
+
+### Google Gemini API (for DETAILS mode)
+
+1. Go to: https://ai.google.dev/
+2. Sign in with Google account
+3. Create API key (free tier: 60 requests/minute)
+4. Add to `.env`:
+   ```bash
+   GEMINI_API_KEY=your_key_here
+   ```
+
+### ElevenLabs TTS (optional premium voice)
+
+1. Go to: https://elevenlabs.io (free: 10k chars/month)
+2. Create account, get API key
+3. Add to `.env`:
+   ```bash
+   ELEVEN_API_KEY=sk_your_key_here
+   ELEVEN_VOICE_ID=AeRdCCKzvd23BpJoofzx  # default: Rachel
+   ```
+
+**Without ElevenLabs, the app uses edge-tts (Microsoft voices) — no key needed!**
+
+---
 
 ### Flask API (optional)
 
 ```bash
 python app.py
+# Server at http://localhost:5000
 
-curl -X POST http://localhost:5000/find -d '{"query":"milk"}' -H 'Content-Type: application/json'
+# Find an item
+curl -X POST http://localhost:5000/find \
+  -d '{"query":"milk"}' \
+  -H 'Content-Type: application/json'
+
+# Read text
 curl -X POST http://localhost:5000/read
+
+# Get status
 curl http://localhost:5000/status
 ```
 
