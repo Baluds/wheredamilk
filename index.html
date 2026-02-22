@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhereDaMilk</title>
+    <link rel="icon" type="image/png" href="assets/3.png">
+    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Nav -->
+    <nav class="nav">
+        <div class="nav-inner">
+            <div class="nav-left">
+                <a href="index.html" class="nav-logo">
+                    <img src="assets/3.png" alt="WhereDaMilk" class="nav-logo-img">
+                </a>
+                <div class="nav-links">
+                    <a href="#features">Features</a>
+                    <a href="#faq">FAQ</a>
+                </div>
+            </div>
+            <div class="nav-right">
+                <a href="download.html" class="nav-btn">Download</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero" id="hero">
+        <div class="hero-inner">
+            <img src="assets/2.png" alt="WhereDaMilk" class="hero-logo">
+            <h1>WhereDaMilk?</h1>
+            <p class="hero-tagline">AI-Powered Vision Assistant<br>Voice-Controlled Object Finder</p>
+            <p class="hero-desc">Point your webcam at anything. Speak to find items, read labels, and identify objects — completely hands-free.</p>
+            <div class="hero-buttons">
+                <button class="btn-start" id="initBtn">Start App</button>
+                <button class="btn-stop" id="stopBtn">Stop App</button>
+            </div>
+            <p class="status-text" id="statusText"></p>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="section" id="features">
+        <div class="section-inner">
+            <h2>Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Object Detection</h3>
+                    <p>YOLOv8-powered real-time detection identifies objects in your webcam feed instantly.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📖</div>
+                    <h3>Text Recognition</h3>
+                    <p>EasyOCR reads text from labels, packaging, and signs — then speaks it aloud.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📏</div>
+                    <h3>Depth Estimation</h3>
+                    <p>MiDaS depth model estimates distance to guide you closer to your target.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🗣️</div>
+                    <h3>Voice Control</h3>
+                    <p>Fully hands-free — speak commands to find items, read text, or identify objects.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Commands -->
+    <section class="section section-alt" id="commands">
+        <div class="section-inner">
+            <h2>Voice Commands</h2>
+            <div class="commands-list">
+                <div class="command-row">
+                    <code>"find &lt;item&gt;"</code>
+                    <span>Find and locate a specific item with spoken directions</span>
+                </div>
+                <div class="command-row">
+                    <code>"what is this"</code>
+                    <span>Identify the object currently in view</span>
+                </div>
+                <div class="command-row">
+                    <code>"read"</code>
+                    <span>Read text from labels and packaging aloud</span>
+                </div>
+                <div class="command-row">
+                    <code>"stop"</code>
+                    <span>Cancel the current mode and return to idle</span>
+                </div>
+                <div class="command-row">
+                    <code>"quit"</code>
+                    <span>Exit the application</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section" id="faq">
+        <div class="section-inner">
+            <h2>FAQ</h2>
+            <div class="faq-list">
+                <details class="faq-item">
+                    <summary>What does WhereDaMilk do?</summary>
+                    <p>WhereDaMilk is a voice-controlled AI vision assistant. It uses your webcam to detect objects, read text on labels, and give you spoken directions to find items — completely hands-free.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Do I need a GPU?</summary>
+                    <p>No. WhereDaMilk runs on CPU. A GPU will make it faster, but it works fine without one.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What hardware do I need?</summary>
+                    <p>A webcam and a microphone. Built-in laptop webcam and mic work perfectly.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>How does voice control work?</summary>
+                    <p>WhereDaMilk listens through your microphone using Google Speech Recognition. Just say commands like "find milk" or "read" and it responds in real-time.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What text-to-speech engine is used?</summary>
+                    <p>It uses ElevenLabs for high-quality TTS with an API key. If unavailable, it falls back to Microsoft Edge TTS which is free and requires no setup.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Can it detect any object?</summary>
+                    <p>It uses YOLOv8 which can detect 80+ common object classes (bottles, cups, phones, people, etc). For text-based items like specific brands, it uses OCR to read the label text.</p>
+                </details>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>Made by Allen, Bala, Athulya</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
