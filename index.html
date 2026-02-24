@@ -38,7 +38,7 @@
             <h1>WhereDaMilk?</h1>
             <p class="hero-tagline">Real-Time Assistive Vision<br>Voice-Controlled Object Finder</p>
             <p class="hero-desc">Point your camera at anything. Find items, read labels, and get details by speaking.
-                Powered by object detection, depth estimation, and natural voice guidance.</p>
+                Powered by object detection, OCR, and natural voice guidance.</p>
             <div class="hero-buttons">
                 <button class="btn-start" id="initBtn">Start App</button>
                 <button class="btn-stop" id="stopBtn">Stop App</button>
@@ -66,9 +66,9 @@
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">📏</div>
-                    <h3>Depth Estimation</h3>
-                    <p>MiDaS depth model estimates how far objects are, giving spoken guidance to help you navigate
-                        closer to your target.</p>
+                    <h3>Distance Guidance</h3>
+                    <p>Uses bounding box position to speak cues like "Found milk on your left" and guide you to your
+                        target.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">🗣️</div>
@@ -138,8 +138,8 @@
                 <details class="faq-item">
                     <summary>What does WhereDaMilk do?</summary>
                     <p>WhereDaMilk is a real-time assistive vision tool. It uses your camera to detect objects, read
-                        labels, estimate depth, and give spoken directions to help you find items, all through voice
-                        commands.</p>
+                        labels, and give spoken directions to help you find items — all through voice commands.
+                    </p>
                 </details>
                 <details class="faq-item">
                     <summary>What are the different modes?</summary>

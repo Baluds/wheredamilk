@@ -170,7 +170,7 @@ wheredamilk/
 
 ## Team
 
-Built by [Athulya Anil](https://github.com/athulya-anil), [Balachandra DS](https://github.com/Baluds), and [Allen Joe Winny](https://github.com/allenjoewinny)
+Built by [Balachandra DS](https://github.com/Baluds), [Athulya Anil](https://github.com/athulya-anil), and [Allen Joe Winny](https://github.com/allenjoewinny)
 
 🏆 **Best DEI Hack** at [Hack(H)er413 2026](https://www.hackher413.com/) — Diversity, Equity, and Inclusion Award
 
