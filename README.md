@@ -1,7 +1,7 @@
 # WhereDaMilk
 ### AI-Powered Vision Assistant
 
-![WhereDaMilk](/assets/icon.jpg)
+<img src="/assets/icon.jpg" width="400" alt="WhereDaMilk">
 
 Built to help visually impaired users navigate and understand their surroundings in real-world environments.
 
