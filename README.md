@@ -98,7 +98,7 @@ GEMINI_API_KEY=your_key_here
 
 # Optional — premium voice (falls back to edge-tts if not set)
 ELEVEN_API_KEY=sk_your_key_here
-ELEVEN_VOICE_ID=AeRdCCKzvd23BpJoofzx
+ELEVEN_VOICE_ID=AeRdCCKzvd23BpJoofzx  # default: Rachel
 ```
 
 Get a free Gemini key at [ai.google.dev](https://ai.google.dev/) (60 req/min free tier).
